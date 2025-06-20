@@ -1,0 +1,27 @@
+name: Deploy to AWS EC2
+
+on:
+push:
+branches:
+- main
+
+jobs:
+deploy:
+runs-on: ubuntu-latest
+
+steps:
+- name: Checkout repository
+uses: actions/checkout@v3
+
+- name: Setup SSH
+uses: webfactory/ssh-agent@v0.8.1
+with:
+ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+- name: Deploy to EC2
+run: |
+ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_IP }} << 'EOF'
+cd ~/fastapi_monitor || exit
+git pull origin main
+docker compose up -d --build
+EOF
